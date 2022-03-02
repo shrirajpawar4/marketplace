@@ -13,6 +13,13 @@ contract Market is ReentrancyGuard {
     Counters.Counter private _itemIds;
     Counters.Counter private _itemsSold;
 
+    address payable owner;
+    uint256 basePrice = 5 ether;
+
+    constructor() {
+        owner = payable(msg.sender);
+    }
+
     // defining struct for items
     struct Item {
        uint itemId;
@@ -37,6 +44,7 @@ contract Market is ReentrancyGuard {
    //Listing nft for sale
     function sellItem(address nftContract, uint256 tokenId, uint256 price) public payable nonReentrant {
         require(price > 0, "Price is very low");
+        require(msg.value == basePrice, "Enter the minimum amount to list your item");
 
         _itemIds.increment();
         uint256 itemId = _itemIds.current();
@@ -66,6 +74,7 @@ contract Market is ReentrancyGuard {
         IERC721(nftContract).transferFrom(address(this), msg.sender, tokenId); //transferring ownership of nft
         idToMarketItem[itemId].owner = payable(msg.sender); 
         _itemsSold.increment();
+        payable(owner).transfer(basePrice);
     }
 
     function fetchItems() public view returns(Item[] memory) {
@@ -73,16 +82,37 @@ contract Market is ReentrancyGuard {
         uint itemsUnsold = _itemIds.current() - _itemsSold.current();
         uint currentIndex = 0;
 
-        Item[] memory items = new Item[](itemsUnsold);
+        Item[] memory items = new Item[](itemsUnsold); // empty array to showcase unsold items
         for (uint256 i = 0; i < itemCount; i++) {
             if (idToMarketItem[i + 1].owner == address(0)) {
                 uint currentId = idToMarketItem[i + 1].itemId;
                 Item storage currentItem = idToMarketItem[currentId];
                 items[currentIndex] = currentItem;
                 currentIndex += 1;
-            } else {
-                
+            } 
+        }
+        return items;
+    }
+
+    function displayNFT() public view returns (Item[] memory) {
+        uint totalItemCount = _itemIds.current();
+        uint itemCount = 0;
+        uint currentIndex = 0;
+
+        for (uint i = 0; i < totalItemCount; i++) {
+            if (idToMarketItem[i +1 ].owner == msg.sender) {
+                itemCount += 1;
             }
+        }    
+
+        Item[] memory items = new Item[](itemCount);
+        for (uint i = 0; i < totalItemCount; i++) {
+            if (idToMarketItem[i + 1].owner == msg.sender) {
+                uint currentId = idToMarketItem[i + 1].itemId;
+                Item storage currentItem = idToMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+             }        
         }
     }
 }
