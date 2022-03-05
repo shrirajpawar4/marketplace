@@ -114,5 +114,6 @@ contract Market is ReentrancyGuard {
                 currentIndex += 1;
              }        
         }
+        return items;
     }
 }
