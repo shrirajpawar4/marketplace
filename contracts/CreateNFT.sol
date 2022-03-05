@@ -2,8 +2,12 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "hardhat/console.sol";
 
 contract CreateNFT is ERC721, Ownable {
     using Counters for Counters.Counter;
@@ -16,9 +20,9 @@ contract CreateNFT is ERC721, Ownable {
 
     string public baseTokenURI;
 
-    constructor(string memory baseURI, address marketplaceAddress) ERC721("CreateNFT", "CNFT") {
+    constructor(string memory baseURI) ERC721("CreateNFT", "CNFT") {
         setBaseURI(baseURI);
-        contractAddress = marketplaceAddress;
+        // contractAddress = marketplaceAddress;
     }
 
     function _baseURI() internal override view returns (string memory) {
@@ -27,22 +31,31 @@ contract CreateNFT is ERC721, Ownable {
 
     function setBaseURI(string memory _baseTokenURI) public onlyOwner {
         baseTokenURI = _baseTokenURI;
-    } 
+    }
 
-    function mintNFT(uint _count) public payable returns (uint256) {
-        uint totalMinted = _tokenIdCounter.current();
-        require(msg.value >= mintRate, "Not enough ether");
+    // function mintNFT(uint _count) public payable returns (uint256) {
+    //     uint totalMinted = _tokenIdCounter.current();
+    //     require(msg.value >= mintRate, "Not enough ether");
 
-        for (uint i = 0; i < _count; i++) {
-            _mintNFT();
-        }
+    //     for (uint i = 0; i < _count; i++) {
+    //         _mintNFT();
+    //     }
 
-        // _tokenIdCounter.increment();
-        // uint256 newItemId = _tokenIdCounter.current();
+    //     _tokenIdCounter.increment();
+    //     uint256 newItemId = _tokenIdCounter.current();
+    //     _tokenIdCounter.current();
 
-        // _mint(msg.sender, newItemId);
+    //     _mint(msg.sender, newItemId);
         
-        // return newItemId;
+    //     // return newItemId;
+    // }
+
+    function mintNFT(address to) public onlyOwner {
+        uint tokenId = _tokenIdCounter.current();
+        // require(msg.value >= mintRate, "Not enough ether");
+        _tokenIdCounter.increment();
+        _safeMint(to, tokenId);
+        // _setTokenURI(tokenId, uri);
     }
 
     function _mintNFT() private {
